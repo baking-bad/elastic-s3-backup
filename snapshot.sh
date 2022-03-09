@@ -116,19 +116,23 @@ case "${ES_SNAPSHOT_ACTION:-create}" in
       echo "You need to set the ES_RESTORE_INDICES environment variable." >&2
       exit 4
     fi
+    echo "Restoring indices $ES_RESTORE_INDICES"
     # overwrite existing indices if desired
     if [ "${ES_RESTORE_OVERWRITE_ALL_INDICES}" == "true" ] || [ "${ES_RESTORE_OVERWRITE_ALL_INDICES}" == "1" ] ; then
       for index in ${ES_RESTORE_INDICES//,/ } ; do
         # check if index exists and delete it
+        echo "Deleting index ${index}"
         [ "$(curl -qs -XGET "${ES_URL}/${index}" | jq .error)" == "null" ] && curl -s -k -XDELETE "${ES_URL}/${index}"
       done
     elif [ -n "${ES_RESTORE_OVERWRITE_INDICES}" ] ; then
       for index in ${ES_RESTORE_OVERWRITE_INDICES//,/ } ; do
         # check if index exists and delete it
+        echo "Deleting index ${index}"
         [ "$(curl -qs -XGET "${ES_URL}/${index}" | jq .error)" == "null" ] && curl -s -k -XDELETE "${ES_URL}/${index}"
       done
     fi
     # restore snapshot
+    echo "Restoring snapshot ${ES_SNAPSHOT}"
     curl -v -s -k -XPOST "${ES_URL}/_snapshot/${ES_REPO}-s3-repository/${ES_SNAPSHOT}/_restore?pretty" -H 'Content-Type: application/json' -d'
     {
       "indices": "'${ES_RESTORE_INDICES}'",
